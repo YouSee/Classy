@@ -24,7 +24,14 @@ static void *CASStyleHasBeenUpdatedKey = &CASStyleHasBeenUpdatedKey;
 }
 
 - (void)cas_didMoveToWindow {
-    [self cas_updateStyling];
+
+
+    UIViewController *controller = [[UIApplication sharedApplication].delegate performSelector:@selector(topmostViewController)];
+    if([controller respondsToSelector:@selector(disableCAS)] && [controller performSelector:@selector(disableCAS)]){
+        // NOOP
+    } else {
+        [self cas_updateStyling];
+    }
     [self cas_didMoveToWindow];
 }
 
