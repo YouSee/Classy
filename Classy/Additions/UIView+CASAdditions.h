@@ -13,6 +13,8 @@
 
 @property (nonatomic, weak, readwrite) id<CASStyleableItem> cas_alternativeParent;
 
+- (void)cas_setDisabled;
+
 - (void)cas_setNeedsUpdateStylingForSubviews;
 
 @end

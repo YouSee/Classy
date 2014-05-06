@@ -14,6 +14,7 @@
 #import "NSString+CASAdditions.h"
 #import "CASStyleClassUtilities.h"
 
+static char *const CasDisabled = "CasDisabled";
 static void *CASStyleHasBeenUpdatedKey = &CASStyleHasBeenUpdatedKey;
 
 @implementation UIView (CASAdditions)
@@ -21,15 +22,36 @@ static void *CASStyleHasBeenUpdatedKey = &CASStyleHasBeenUpdatedKey;
 + (void)load {
     [self cas_swizzleInstanceSelector:@selector(didMoveToWindow)
                       withNewSelector:@selector(cas_didMoveToWindow)];
+
+    [self cas_swizzleInstanceSelector:@selector(addSubview:) withNewSelector:@selector(cas_addSubview:)];
+}
+
+
+- (void)cas_addSubview:(UIView*)subview
+{
+    if([self cas_disabled]){
+        [subview cas_setDisabled];
+    }
+    [self cas_addSubview:subview];
+}
+
+- (BOOL)cas_disabled
+{
+    NSNumber *n = objc_getAssociatedObject(self, CasDisabled);
+    return n==nil?NO:YES;
+}
+
+- (void)cas_setDisabled
+{
+    objc_setAssociatedObject(self, CasDisabled, @(YES), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    for (UIView *view in self.subviews){
+        [view cas_setDisabled];
+    }
 }
 
 - (void)cas_didMoveToWindow {
 
-
-    UIViewController *controller = [[UIApplication sharedApplication].delegate performSelector:@selector(topmostViewController)];
-    if([controller respondsToSelector:@selector(disableCAS)] && [controller performSelector:@selector(disableCAS)]){
-        // NOOP
-    } else {
+    if(![self cas_disabled]){
         [self cas_updateStyling];
     }
     [self cas_didMoveToWindow];
